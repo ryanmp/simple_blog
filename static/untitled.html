@@ -1,0 +1,288 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <title> - jsFiddle demo by marktherain</title>
+  
+  <script type='text/javascript' src='http://code.jquery.com/jquery-1.6.4.js'></script>
+  <link rel="stylesheet" type="text/css" href="/css/normalize.css">
+  
+  
+  <link rel="stylesheet" type="text/css" href="/css/result-light.css">
+  
+  <style type='text/css'>
+    @font-face {
+  font-family: 'Merriweather';
+  font-style: normal;
+  font-weight: 300;
+  src: local('Merriweather Light'), local('Merriweather-Light'), url(http://themes.googleusercontent.com/static/fonts/merriweather/v5/ZvcMqxEwPfh2qDWBPxn6nmB7wJ9CoPCp9n30ZBThZ1I.woff) format('woff');
+}
+
+@font-face {
+  font-family: 'Merriweather';
+  font-style: normal;
+  font-weight: 700;
+  src: local('Merriweather Bold'), local('Merriweather-Bold'), url(http://themes.googleusercontent.com/static/fonts/merriweather/v5/ZvcMqxEwPfh2qDWBPxn6nhAPw1J91axKNXP_-QX9CC8.woff) format('woff');
+}
+body {
+    overflow:none;
+    font-size:1.3em;
+    font-family: 'Merriweather', serif;
+}
+a, a:visited, a:active {
+    color:#09f;
+    text-decoration:none;
+}
+p {
+    margin:5px;
+}
+h1 {
+    font-family: Futura, sans-serif;
+font-size:54px;
+    color: #111;
+    font-weight:300;
+    text-align:center;
+    line-height:60px;
+    text-transform:uppercase;
+}
+#search {
+    
+    font-family: 'Merriweather', serif;
+    font-weight: 300;
+    font-size: 18px;
+    border-style: solid;
+    border-radius: 4px;
+    border-width: 1px;
+    border-color: #DDD;
+    padding: 6px;
+    margin-left: 10px;
+    margin-right: 10px;
+    margin-top: 20px;
+    width: 165px;
+    margin-bottom:2px;
+}
+
+#container {
+    margin: 0 0 0 200px;
+}
+#article {
+    width:90%;
+    max-width:500px;
+    margin: auto;
+    padding-top:50px;
+    padding-bottom:50px;
+}
+#sidebar {
+    position:fixed;
+    width:200px;
+    height:100%;
+    overflow:scroll;
+    background-color:#eee;
+}
+
+#sidebar #links li{
+}
+
+#sidebar #links li h3{
+     padding:13px 10px 7px 10px;
+    display:block;
+    color:#333;
+    font-weight:700;
+}
+
+#sidebar #links li.active, #sidebar #links li.active a:hover{
+    background-color:#ccc;
+    cursor:default;
+}
+
+#sidebar #links li a{
+    padding:3px 10px 3px 10px;
+    display:block;
+}
+
+#sidebar #links li.active a{
+    color:#000;  
+}
+
+#sidebar #links li a:hover{
+    background-color:#ddd;
+}
+
+  </style>
+  
+
+
+<script type='text/javascript'>//<![CDATA[ 
+$(window).load(function(){
+// attach the .compare method to Array's prototype to call it on any array
+Array.prototype.compare = function (array) {
+
+    if (!array) return false;
+
+    if (this.length != array.length) return false;
+
+    for (var i = 0; i < this.length; i++) {
+        // Check if we have nested arrays
+        if (this[i] instanceof Array && array[i] instanceof Array) {
+            // recurse into the nested arrays
+            if (!this[i].compare(array[i])) return false;
+        } else if (this[i] != array[i]) {
+            return false;
+        }
+    }
+    return true;
+}
+
+var pages_list = [
+    {title:"Title one",
+     URL: "title_one.html",
+             yy:13,mm:12,dd:24,
+         author:"Ryan Phillips",
+     body:["p1","p2","p3"]},
+        {title:"Title two",
+     URL: "title_two.html",
+             yy:13,mm:12,dd:24,
+         author:"Ryan Phillips",
+     body:["p1","p2","p3"]},
+        {title:"Something awful this way",
+     URL: "another.html",
+             yy:13,mm:12,dd:24,
+         author:"Ryan Phillips",
+     body:["p1","p2","p3"]},
+
+];
+    
+var active_page = "title_one.html";
+var num_links = pages_list.length;
+var max_links = 10;
+var old_idxs = [];
+var idxs = [];
+if (pages_list.length > max_links) num_links = max_links;
+
+RenderArticle(0);
+InitLinks();
+
+
+function RenderArticle(active_page){
+
+    var idx2 = search_first(active_page,pages_list);    
+
+console.log(idx2);
+    
+$("#article").html("");    
+$("#article").hide();    $("#article").append('<h1>'+pages_list[idx2].title+'</h1>').fadeIn(400);
+    
+ var i;
+    for(i = 0; i < pages_list[idx2].body.length; i++){
+        $("#article").append('<p>'+ pages_list[idx2].body[i]+'</p>');
+    }
+       
+    
+}
+
+
+function InitLinks() {
+    $('#links li').fadeOut(50).remove();
+    $("#links").append('<li><h3>Recent Articles</h3></li>');
+    for (var i = 0; i < num_links; i++) {
+        if (pages_list[i].URL == active_page){
+            $("#links").hide().append('<li class="active"><a href="' + pages_list[i].URL + '">' + pages_list[i].title + '</a></li>').fadeIn(100);
+        } else{
+            $("#links").hide().append('<li><a href="' + pages_list[i].URL + '">' + pages_list[i].title + '</a></li>').fadeIn(100);
+        }
+    }
+}
+
+$("#search").keyup(function () {
+    var search_string = $(this).val();
+
+    if (search_string != '') {
+        idxs = search(search_string, pages_list);
+
+        if (!idxs.compare(old_idxs)) { //only if search results have changed
+            old_idxs = idxs;
+            $('#links li').fadeOut(50).remove();
+            
+                $("#links").append('<li><h3>Results</h3></li>').fadeIn(100);
+            
+            for (var idx = 0; idx < idxs.length; idx++) {
+                if (pages_list[idxs[idx]].URL == active_page){
+                $("#links").hide().append('<li class="active"><a href="' + pages_list[idxs[idx]].URL + '">' + pages_list[idxs[idx]].title + '</a></li>').fadeIn(100);
+                } else{
+                     $("#links").hide().append('<li><a href="' + pages_list[idxs[idx]].URL + '">' + pages_list[idxs[idx]].title + '</a></li>').fadeIn(100);
+                }
+                
+            }
+
+            if (idxs.length == 0) {
+                $("#links").hide().append('<li>No Matches</li>').fadeIn(100);
+            }
+        }
+
+    } else {
+        InitLinks();
+        old_idxs = idxs;
+    }
+
+    clicker(); //must reinit our on-click foo
+    
+});
+
+
+clicker();
+function clicker(){
+    $('a').click(function (event) {
+    
+        event.preventDefault();
+           
+      $('#links li').removeClass("active");
+        active_page = $(this).attr('href');
+        $(this).parent('li').addClass('active');
+  
+        $('#article').fadeOut(200, function () {
+           RenderArticle(active_page);
+        });
+        
+  
+    });
+}
+
+//helper function for search
+function search(str, strArray) {
+    var _idxs = [];
+    for (var j = 0; j < strArray.length; j++) {
+        if (strArray[j].title.match(str)) _idxs.push(j);
+    }
+    return _idxs;
+}
+
+function search_first(str, strArray) {
+    for (var j = 0; j < strArray.length; j++) {
+        if (strArray[j].URL.match(str)){
+            return j;
+        }
+    }
+    return 0;
+}
+});//]]>  
+
+</script>
+
+
+</head>
+<body>
+  <div id="sidebar">
+    <input type="text" id="search" placeholder="Search" />
+    <ul id="links"></ul>
+</div>
+<div id="container">
+    <div id="article">
+    </div>
+</div>
+  
+</body>
+
+
+</html>
+
